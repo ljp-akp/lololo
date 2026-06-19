@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>喜欢你不止167行</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pink: {
+              light: '#ffc0cb',
+              DEFAULT: '#ff69b4',
+              dark: '#ff1493',
+            },
+            neon: {
+              green: '#39ff14',
+              blue: '#147dff',
+              purple: '#9d14ff',
+            },
+          },
+          fontFamily: {
+            sans: ['"Microsoft YaHei"', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-shadow-neon {
+        text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor;
+      }
+      .heart-window {
+        position: fixed;
+        z-index: 9999;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        padding: 10px;
+        color: white;
+        box-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
+      }
+      .blur-bg {
+        backdrop-filter: blur(8px);
+      }
+    }
+  </style>
+</head>
+<body class="bg-black min-h-screen flex items-center justify-center p-4">
+  <div id="app" class="w-full h-full relative">
+    <!-- 初始提示 -->
+    <div id="init-tip" class="fixed inset-0 flex items-center justify-center z-50 blur-bg">
+      <div class="bg-black/80 p-6 rounded-lg border border-pink/50 text-center">
+        <h2 class="text-pink text-2xl mb-4 text-shadow-neon">点击屏幕开始</h2>
+        <p class="text-white mb-4">将为你呈现167行代码外的喜欢 ❤️</p>
+        <button id="start-btn" class="bg-pink hover:bg-pink-dark text-white px-4 py-2 rounded transition-all duration-300 text-shadow-neon">
+          开始 <<i class="fa fa-heart ml-2"></</i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 心形和提示将通过JS动态生成 -->
+  </div>
+
+  <script>
+    // 温馨提示语列表
+    const tips = [
+      "记得吃早餐，天天都要元气满满~",
+      "别熬夜，好好睡觉哦~",
+      "保持好心情，每天都要开心~",
+      "想你了~",
+      "多喝热水，照顾好自己~",
+      "期待下一次见面~",
+      "要一直幸福哦~",
+      "好好吃饭，别亏待自己~",
+      "爱你哟~",
+      "有你在，每一天都很温暖~"
+    ];
+
+    // 提示框背景色列表
+    const bgColors = [
+      "bg-pink", "bg-neon-green", "bg-neon-blue", "bg-neon-purple", 
+      "bg-lightblue", "bg-lightgreen", "bg-lavender", "bg-lightyellow"
+    ];
+
+    // 生成心形坐标（数学公式：心形曲线）
+    function generateHeartPoints(numPoints, screenW, screenH, windowW, windowH) {
+      const points = [];
+      const centerX = screenW / 2;
+      const centerY = screenH / 2;
+      const scale = Math.min(screenW / 30, screenH / 30); // 缩放比例
+
+      for (let i = 0; i < numPoints; i++) {
+        const t = i / numPoints * 2 * Math.PI;
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+        const posX = centerX + x * scale;
+        const posY = centerY + y * scale;
+        // 确保窗口在屏幕内
+        const finalX = Math.max(windowW / 2, Math.min(posX, screenW - windowW / 2));
+        const finalY = Math.max(windowH / 2, Math.min(posY, screenH - windowH / 2));
+        points.push({ x: finalX, y: finalY });
+      }
+      return points;
+    }
+
+    // 显示心形提示框
+    function showHeartTip(x, y, w, h, tip) {
+      const heartWindow = document.createElement("div");
+      heartWindow.className = "heart-window";
+      heartWindow.style.width = `${w}px`;
+      heartWindow.style.height = `${h}px`;
+      heartWindow.style.left = `${x - w/2}px`;
+      heartWindow.style.top = `${y - h/2}px`;
+      
+      const color = `rgb(${Math.random() * 255 | 0}, ${Math.random() * 255 | 0}, ${Math.random() * 255 | 0})`;
+      heartWindow.style.backgroundColor = color;
+      heartWindow.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
+
+      heartWindow.innerHTML = `
+        <div class="text-center">
+          <p class="font-bold text-shadow-neon">${tip}</p>
+        </div>
+      `;
+
+      document.getElementById("app").appendChild(heartWindow);
+
+      // 自动关闭
+      setTimeout(() => {
+        heartWindow.remove();
+      }, 3000);
+    }
+
+    // 显示随机温馨提示
+    function showWarmTip() {
+      const screenW = window.innerWidth;
+      const screenH = window.innerHeight;
+      const windowW = 200 + Math.random() * 100;
+      const windowH = 80 + Math.random() * 40;
+      
+      const x = Math.random() * (screenW - windowW);
+      const y = Math.random() * (screenH - windowH);
+      const tip = tips[Math.floor(Math.random() * tips.length)];
+      const bgColor = bgColors[Math.floor(Math.random() * bgColors.length)];
+
+      const tipWindow = document.createElement("div");
+      tipWindow.className = `heart-window ${bgColor} text-shadow-neon`;
+      tipWindow.style.width = `${windowW}px`;
+      tipWindow.style.height = `${windowH}px`;
+      tipWindow.style.left = `${x}px`;
+      tipWindow.style.top = `${y}px`;
+      tipWindow.innerHTML = `<p class="text-center font-bold">${tip}</p>`;
+
+      document.getElementById("app").appendChild(tipWindow);
+
+      // 自动关闭
+      setTimeout(() => {
+        tipWindow.remove();
+      }, 5000);
+    }
+
+    // 主逻辑
+    document.getElementById("start-btn").addEventListener("click", () => {
+      document.getElementById("init-tip").remove();
+
+      const screenW = window.innerWidth;
+      const screenH = window.innerHeight;
+      const numHearts = 300; // 心形数量
+      const heartW = 100;
+      const heartH = 100;
+      const points = generateHeartPoints(numHearts, screenW, screenH, heartW, heartH);
+
+      // 第一阶段：心形弹窗
+      points.forEach((point, index) => {
+        setTimeout(() => {
+          const tip = tips[Math.floor(Math.random() * tips.length)];
+          showHeartTip(point.x, point.y, heartW, heartH, tip);
+        }, index * 30); // 间隔时间，控制弹出密度
+      });
+
+      // 第二阶段：随机温馨提示（心形结束后）
+      setTimeout(() => {
+        // 持续弹出温馨提示
+        setInterval(showWarmTip, 2000);
+      }, numHearts * 30 + 3000);
+    });
+
+    // 点击屏幕也可开始（适配手机触摸）
+    document.getElementById("init-tip").addEventListener("click", (e) => {
+      if (e.target.id === "init-tip") {
+        document.getElementById("start-btn").click();
+      }
+    });
+  </script>
+</body>
+</html>
