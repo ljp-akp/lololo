@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>喜欢你不止167行 · 高级版</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.11.4/dist/gsap.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            neon: {
+              pink: '#ff2e93',
+              purple: '#9d2eff',
+              blue: '#2e9dff',
+              green: '#2eff9d',
+            },
+            gradient: {
+              pink: 'linear-gradient(135deg, #ff2e93, #ff88c2)',
+              purple: 'linear-gradient(135deg, #9d2eff, #c288ff)',
+              rainbow: 'linear-gradient(135deg, #ff2e93, #9d2eff, #2e9dff, #2eff9d)',
+            },
+          },
+          fontFamily: {
+            sans: ['"Microsoft YaHei"', 'sans-serif'],
+            fancy: ['"Segoe UI Emoji"', 'cursive'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-glow {
+        text-shadow: 0 0 8px currentColor, 0 0 15px currentColor, 0 0 25px currentColor;
+      }
+      .bg-blur {
+        backdrop-filter: blur(12px);
+      }
+      .3d-card {
+        transform-style: preserve-3d;
+        perspective: 1000px;
+      }
+      .card-shadow {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 46, 147, 0.5);
+      }
+    }
+  </style>
+  <style>
+    body {
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.8);
+      pointer-events: none;
+    }
+    .heart-3d {
+      position: fixed;
+      z-index: 1000;
+    }
+    audio {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-black min-h-screen flex items-center justify-center p-0">
+  <!-- 背景粒子容器 -->
+  <div id="particle-container" class="fixed inset-0 z-0"></div>
+
+  <!-- 初始界面 -->
+  <div id="init-screen" class="fixed inset-0 flex items-center justify-center z-50 bg-black/80 bg-blur">
+    <div class="3d-card card-shadow bg-gradient-pink rounded-2xl p-8 text-center transform transition-all duration-1000 hover:scale-105">
+      <h1 class="text-[clamp(2rem,5vw,3rem)] text-white text-glow font-fancy mb-4">
+        代码只有167行<br>
+        <span class="text-neon-purple">对你的喜欢不止于此</span>
+      </h1>
+      <p class="text-white/80 mb-6 max-w-xs mx-auto">
+        点击下方按钮，开启一场关于“喜欢”的视觉盛宴
+      </p>
+      <button id="start-btn" class="bg-neon-pink hover:bg-neon-purple text-white px-6 py-3 rounded-full text-glow transition-all duration-500 flex items-center justify-center mx-auto">
+        开始体验 <<i class="fa fa-heart ml-2 text-xl"></</i>
+      </button>
+    </div>
+  </div>
+
+  <!-- 音频反馈 -->
+  <audio id="heart-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
+  <audio id="tip-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-interface-hint-notification-911.mp3"></audio>
+
+  <script>
+    // 温馨提示语（更文艺版）
+    const tips = [
+      "晚风知我意，吹梦到你心",
+      "你是我疲惫生活里的英雄梦想",
+      "见你时，风是暖的，雨是甜的",
+      "宇宙级别的浪漫，只给你",
+      "你是我藏在星河里的喜欢",
+      "余生很长，要和你一起浪费",
+      "世间万般美好，都不及你笑靥",
+      "你是我剧本里的唯一主角",
+      "心动一次，置顶一生",
+      "你的存在，本身就是温柔本身"
+    ];
+
+    // 渐变背景色列表
+    const gradients = [
+      'linear-gradient(135deg, #ff2e93, #ff88c2)',
+      'linear-gradient(135deg, #9d2eff, #c288ff)',
+      'linear-gradient(135deg, #2e9dff, #88c2ff)',
+      'linear-gradient(135deg, #2eff9d, #88ffc2)'
+    ];
+
+    // 粒子特效：点击屏幕生成爱心粒子
+    function initParticles() {
+      const container = document.getElementById('particle-container');
+      let particles = [];
+
+      function createParticle(x, y) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        const size = 5 + Math.random() * 10;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        particle.style.left = `${x - size/2}px`;
+        particle.style.top = `${y - size/2}px`;
+        particle.style.backgroundColor = `rgba(${Math.random()*255|0}, ${Math.random()*255|0}, ${Math.random()*255|0}, 0.8)`;
+        
+        container.appendChild(particle);
+        particles.push({
+          el: particle,
+          x: x,
+          y: y,
+          vx: (Math.random() - 0.5) * 5,
+          vy: (Math.random() - 0.8) * 5,
+          gravity: 0.1,
+          alpha: 1,
+          size: size
+        });
+
+        // 动画
+        const animate = () => {
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.vy += p.gravity;
+            p.x += p.vx;
+            p.y += p.vy;
+            p.alpha -= 0.02;
+            p.size -= 0.1;
+
+            p.el.style.left = `${p.x - p.size/2}px`;
+            p.el.style.top = `${p.y - p.size/2}px`;
+            p.el.style.opacity = p.alpha;
+            p.el.style.width = `${p.size}px`;
+            p.el.style.height = `${p.size}px`;
+
+            if (p.alpha <= 0 || p.size <= 0) {
+              p.el.remove();
+              particles.splice(i, 1);
+            }
+          }
+          requestAnimationFrame(animate);
+        };
+        animate();
+      }
+
+      // 点击生成粒子
+      document.addEventListener('click', (e) => {
+        createParticle(e.clientX, e.clientY);
+      });
+      document.addEventListener('touchstart', (e) => {
+        createParticle(e.touches[0].clientX, e.touches[0].clientY);
+      });
+    }
+
+    // 3D心形弹窗
+    function create3DHeart(x, y, tip) {
+      const heart = document.createElement('div');
+      heart.className = 'heart-3d';
+      heart.style.width = '120px';
+      heart.style.height = '120px';
+      heart.style.left = `${x - 60}px`;
+      heart.style.top = `${y - 60}px`;
+      heart.innerHTML = `
+        <div class="w-full h-full rounded-full bg-gradient-rainbow animate-pulse" style="transform: rotate(45deg);"></div>
+        <div class="absolute top-[-50%] left-0 w-full h-full rounded-full bg-gradient-rainbow animate-pulse" style="transform: rotate(45deg);"></div>
+        <div class="absolute left-[-50%] top-0 w-full h-full rounded-full bg-gradient-rainbow animate-pulse" style="transform: rotate(45deg);"></div>
+        <div class="absolute inset-0 flex items-center justify-center text-white text-glow font-bold text-sm p-2">${tip}</div>
+      `;
+
+      document.body.appendChild(heart);
+
+      // 3D旋转动画
+      gsap.fromTo(heart, { rotationY: 0, scale: 0.5, opacity: 0 }, {
+        rotationY: 360,
+        scale: 1,
+        opacity: 1,
+        duration: 0.8,
+        ease: 'elastic.out(1, 0.3)'
+      });
+
+      // 自动关闭
+      setTimeout(() => {
+        gsap.to(heart, {
+          scale: 0,
+          opacity: 0,
+          duration: 0.5,
+          onC...
